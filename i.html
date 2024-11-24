@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crypto Payment Confirmation</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.1/web3.min.js"></script>
+    <script src="https://unpkg.com/@walletconnect/client@1.7.3/dist/umd/index.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+    />
+    <style>
+      /* Global Styles */
+      body {
+        background-color: #f8f8f8;
+        font-family: Arial, sans-serif;
+        color: #333;
+      }
+
+      h3 {
+        color: #ff6f00;
+      }
+
+      .form-label {
+        color: #333;
+        font-weight: bold;
+      }
+
+      /* Card Styles */
+      .wallet-card,
+      .payment-card {
+        max-width: 400px;
+        margin: 50px auto;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        text-align: center;
+      }
+
+      .btn-primary {
+        background-color: #ff6f00;
+        border: none;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #fff;
+        transition: all 0.3s;
+      }
+
+      .btn-primary:hover {
+        background-color: #cc5700;
+        transform: scale(1.02);
+      }
+
+      .amount-display {
+        margin: 15px 0;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+
+      .price {
+        font-size: 1.5rem;
+        color: #ff6f00;
+        font-weight: bold;
+      }
+
+      .monthly {
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .payment-card {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Wallet Selection Section -->
+      <div class="wallet-card" id="walletCard">
+        <h3>Select Your Wallet</h3>
+        <p>To proceed with payment, please connect your wallet.</p>
+        <select id="walletSelector" class="form-select mb-3">
+          <option value="metamask">MetaMask</option>
+          <option value="walletconnect">Bitget, Binance, OKX (WalletConnect)</option>
+        </select>
+        <button class="btn btn-primary" onclick="connectWallet()">Connect Wallet</button>
+        <p id="walletStatus" class="mt-3"></p>
+      </div>
+
+      <!-- Payment Section -->
+      <div class="payment-card" id="paymentCard">
+        <h3>Crypto Payment</h3>
+        <form id="paymentForm">
+          <div class="mb-3">
+            <label for="payWith" class="form-label">Pay with</label>
+            <select id="payWith" class="form-select">
+              <option value="ETH">ETH</option>
+              <option value="USDC">USDC</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="blockchain" class="form-label">On blockchain</label>
+            <select id="blockchain" class="form-select">
+              <option value="mainnet">Ethereum</option>
+              <option value="polygon">Polygon</option>
+            </select>
+          </div>
+          <div class="amount-display">
+            <div class="price">19.95</div>
+            <div class="monthly">≈ 19.95 USD/month</div>
+          </div>
+          <button class="btn btn-primary w-100" onclick="processPayment(event)">
+            Pay & Subscribe
+          </button>
+          <p id="balanceStatus" class="mt-3"></p>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      let provider;
+      let walletConnector;
+      let userWalletAddress;
+
+      async function connectWallet() {
+        const selectedWallet = document.getElementById("walletSelector").value;
+
+        try {
+          if (selectedWallet === "metamask") {
+            if (!window.ethereum) {
+              alert("MetaMask is not installed. Please install it to continue.");
+              return;
+            }
+
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            const signer = provider.getSigner();
+            userWalletAddress = await signer.getAddress();
+          } else if (selectedWallet === "walletconnect") {
+            walletConnector = new WalletConnect.default({
+              bridge: "https://bridge.walletconnect.org", // Required
+            });
+
+            if (!walletConnector.connected) {
+              await walletConnector.createSession();
+            }
+
+            walletConnector.on("connect", (error, payload) => {
+              if (error) throw error;
+
+              const { accounts } = payload.params[0];
+              userWalletAddress = accounts[0];
+            });
+          }
+
+          document.getElementById("walletStatus").innerText = `Connected: ${userWalletAddress}`;
+          document.getElementById("walletCard").style.display = "none";
+          document.getElementById("paymentCard").style.display = "block";
+        } catch (error) {
+          console.error("Wallet connection failed:", error);
+          alert("Failed to connect wallet.");
+        }
+      }
+
+      async function getWalletBalance(token) {
+        try {
+          if (!userWalletAddress) throw new Error("Wallet is not connected.");
+          const balance = await provider.getBalance(userWalletAddress);
+          return ethers.utils.formatEther(balance); // Convert to ETH
+        } catch (error) {
+          console.error("Error fetching balance:", error);
+          throw new Error("Unable to fetch wallet balance.");
+        }
+      }
+
+      async function processPayment(event) {
+        event.preventDefault();
+
+        const payWith = document.getElementById("payWith").value;
+        const paymentAmount = 19.95; // Example USD value
+
+        try {
+          const balance = await getWalletBalance(payWith);
+          document.getElementById("balanceStatus").innerText = `Your Balance: ${balance} ${payWith}`;
+          if (parseFloat(balance) < paymentAmount) {
+            alert("Insufficient balance to complete the payment.");
+            return;
+          }
+
+          alert("Payment successful! Thank you for your subscription.");
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+    </script>
+  </body>
+</html>
