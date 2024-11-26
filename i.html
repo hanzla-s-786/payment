@@ -1,205 +1,278 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crypto Payment Confirmation</title>
-    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.8.1/web3.min.js"></script>
-    <script src="https://unpkg.com/@walletconnect/client@1.7.3/dist/umd/index.min.js"></script>
+    <title>Profile</title>
     <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
     />
-    <style>
-      /* Global Styles */
-      body {
-        background-color: #f8f8f8;
-        font-family: Arial, sans-serif;
-        color: #333;
-      }
-
-      h3 {
-        color: #ff6f00;
-      }
-
-      .form-label {
-        color: #333;
-        font-weight: bold;
-      }
-
-      /* Card Styles */
-      .wallet-card,
-      .payment-card {
-        max-width: 400px;
-        margin: 50px auto;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        background: #fff;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        text-align: center;
-      }
-
-      .btn-primary {
-        background-color: #ff6f00;
-        border: none;
-        border-radius: 5px;
-        padding: 10px;
-        font-size: 0.9rem;
-        font-weight: bold;
-        color: #fff;
-        transition: all 0.3s;
-      }
-
-      .btn-primary:hover {
-        background-color: #cc5700;
-        transform: scale(1.02);
-      }
-
-      .amount-display {
-        margin: 15px 0;
-        padding: 10px;
-        background-color: #f9f9f9;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-      }
-
-      .price {
-        font-size: 1.5rem;
-        color: #ff6f00;
-        font-weight: bold;
-      }
-
-      .monthly {
-        font-size: 0.9rem;
-        color: #666;
-      }
-
-      .payment-card {
-        display: none;
-      }
-    </style>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
   </head>
-  <body>
-    <div class="container">
-      <!-- Wallet Selection Section -->
-      <div class="wallet-card" id="walletCard">
-        <h3>Select Your Wallet</h3>
-        <p>To proceed with payment, please connect your wallet.</p>
-        <select id="walletSelector" class="form-select mb-3">
-          <option value="metamask">MetaMask</option>
-          <option value="walletconnect">Bitget, Binance, OKX (WalletConnect)</option>
-        </select>
-        <button class="btn btn-primary" onclick="connectWallet()">Connect Wallet</button>
-        <p id="walletStatus" class="mt-3"></p>
-      </div>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .hero {
+      background-color: #7f4c00;
+      padding: 40px 20px;
+      text-align: center;
+      color: white;
+    }
 
-      <!-- Payment Section -->
-      <div class="payment-card" id="paymentCard">
-        <h3>Crypto Payment</h3>
-        <form id="paymentForm">
-          <div class="mb-3">
-            <label for="payWith" class="form-label">Pay with</label>
-            <select id="payWith" class="form-select">
-              <option value="ETH">ETH</option>
-              <option value="USDC">USDC</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label for="blockchain" class="form-label">On blockchain</label>
-            <select id="blockchain" class="form-select">
-              <option value="mainnet">Ethereum</option>
-              <option value="polygon">Polygon</option>
-            </select>
-          </div>
-          <div class="amount-display">
-            <div class="price">19.95</div>
-            <div class="monthly">≈ 19.95 USD/month</div>
-          </div>
-          <button class="btn btn-primary w-100" onclick="processPayment(event)">
-            Pay & Subscribe
-          </button>
-          <p id="balanceStatus" class="mt-3"></p>
-        </form>
+    #join-now:not(:disabled):hover {
+      background-color: #ff6600;
+      color: white;
+      cursor: pointer;
+    }
+
+    .task-item {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .task-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 3px rgba(0, 0, 0, 0.5);
+    }
+
+    .task-item.completed {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .task-item.completed .btn {
+      background-color: #28a745;
+      cursor: default;
+    }
+
+    .task-item button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    #user-table {
+      margin-top: 30px;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 5px;
+      border: 1px solid #dee2e6;
+      display: none;
+    }
+
+    #user-table table {
+      width: 100%;
+    }
+
+    #user-table th,
+    #user-table td {
+      text-align: center;
+      padding: 10px;
+    }
+
+    #winner-message {
+      margin-top: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #155724;
+    }
+  </style>
+  <body>
+    
+        <!-- Navigation Bar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm fixed-top">
+            <div class="container">
+              <!-- Brand and logo -->
+              <a class="navbar-brand fw-bold" href="#"
+                ><i class="fas fa-trophy"></i> Lucky Life Draw</a
+              >
+      
+              <!-- Navbar toggler for mobile -->
+              <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+              >
+                <span class="navbar-toggler-icon"></span>
+              </button>
+              <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Navbar items -->
+                <ul class="navbar-nav ms-auto">
+                  <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="#how-to-participate">How to Participate</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="#prizes">Prizes</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" href="#terms">Terms & Conditions</a>
+                  </li>
+                  <!-- Sign In button to trigger modal -->
+                  <div class="dropdown">
+                    <button
+                      class="btn btn-transparent dropdown-toggle text-white"
+                      type="button"
+                      id="userMenu"
+                      data-bs-toggle="dropdown"
+                    >
+                      <i class="fa fa-user"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-start" aria-labelledby="userMenu">
+                      <li><a class="dropdown-item" href="#">Profile</a></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="?logout=true"
+                          ><i class="fas fa-sign-out-alt"></i> Logout</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </ul>
+              </div>
+            </div>
+          </nav>
+      
+      
+
+    <section class="hero mt-5 py-5" id="home">
+      <div class="container">
+        <h1>Welcome to Lucky Life Draw!</h1>
+        <p>Complete tasks to join the lucky draw for amazing prizes.</p>
       </div>
-    </div>
+    </section>
+
+    <section class="py-5" id="tasks">
+      <div class="container">
+        <h2 class="text-center mb-4">Your Tasks</h2>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="task-item d-flex justify-content-between align-items-center" id="task-1">
+              <span>Follow us on Facebook</span>
+              <button class="btn btn-warning" onclick="completeTask(1, 'https://facebook.com')">Task 1</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="task-item d-flex justify-content-between align-items-center" id="task-2">
+              <span>Follow us on Twitter</span>
+              <button class="btn btn-warning" onclick="completeTask(2, 'https://twitter.com')">Task 2</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="task-item d-flex justify-content-between align-items-center" id="task-3">
+              <span>Subscribe to YouTube</span>
+              <button class="btn btn-warning" onclick="completeTask(3, 'https://youtube.com')">Task 3</button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="task-item d-flex justify-content-between align-items-center" id="task-4">
+              <span>Refer a Friend</span>
+              <button class="btn btn-warning" onclick="completeTask(4, 'https://youtube.com')">Task 4</button>
+            </div>
+          </div>
+        </div>
+        <div class="text-center mt-5" id="final-task">
+          <button class="btn btn-primary" id="join-now" disabled onclick="finalizeParticipation()">Join Now</button>
+        </div>
+        <div id="user-table">
+          <h3 class="text-center">Your Ticket Details</h3>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Ticket Number</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+          <div id="winner-message" class="text-center">Waiting for winner announcement...</div>
+        </div>
+      </div>
+    </section>
+
+     <!-- Footer Section -->
+     <footer class="py-4 text-center font-monospace">
+      
+        <!-- Social Media Icons -->
+        <p class="text-orange "> Follow Us</p>
+        <div class="social-icons">
+          <a href="https://facebook.com"><i class="fab fa-facebook-square mx-2"></i></a>
+          <a href="https://youtube.com"><i class="fab fa-youtube-square mx-2"></i></a>
+          <a href="https://instagram.com"><i class="fab fa-instagram-square mx-2"></i></a>
+          <a href="https://telegram.com"><i class="fab fa-telegram mx-2"></i></a>
+        </div>
+        <div class="container mt-4 mb-1">
+          <p>&copy; 2024 Lucky Life Draw. All Rights Reserved.</p>
+      </div>
+    </footer>
 
     <script>
-      let provider;
-      let walletConnector;
-      let userWalletAddress;
+      const username = "JohnDoe";
+      const completedTasks = JSON.parse(localStorage.getItem("completedTasks")) || [];
+      const userDetails = JSON.parse(localStorage.getItem("userDetails")) || null;
 
-      async function connectWallet() {
-        const selectedWallet = document.getElementById("walletSelector").value;
+      function initTasks() {
+        completedTasks.forEach(taskId => {
+          const task = document.getElementById(`task-${taskId}`);
+          const taskButton = task.querySelector("button");
 
-        try {
-          if (selectedWallet === "metamask") {
-            if (!window.ethereum) {
-              alert("MetaMask is not installed. Please install it to continue.");
-              return;
-            }
+          task.classList.add("completed");
+          taskButton.textContent = "Completed ✓";
+          taskButton.classList.replace("btn-warning", "btn-success");
+          taskButton.disabled = true;
+        });
 
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            const signer = provider.getSigner();
-            userWalletAddress = await signer.getAddress();
-          } else if (selectedWallet === "walletconnect") {
-            walletConnector = new WalletConnect.default({
-              bridge: "https://bridge.walletconnect.org", // Required
-            });
+        if (completedTasks.length === 4) {
+          document.getElementById("join-now").disabled = false;
+        }
 
-            if (!walletConnector.connected) {
-              await walletConnector.createSession();
-            }
-
-            walletConnector.on("connect", (error, payload) => {
-              if (error) throw error;
-
-              const { accounts } = payload.params[0];
-              userWalletAddress = accounts[0];
-            });
-          }
-
-          document.getElementById("walletStatus").innerText = `Connected: ${userWalletAddress}`;
-          document.getElementById("walletCard").style.display = "none";
-          document.getElementById("paymentCard").style.display = "block";
-        } catch (error) {
-          console.error("Wallet connection failed:", error);
-          alert("Failed to connect wallet.");
+        if (userDetails) {
+          showUserTable(userDetails);
         }
       }
 
-      async function getWalletBalance(token) {
-        try {
-          if (!userWalletAddress) throw new Error("Wallet is not connected.");
-          const balance = await provider.getBalance(userWalletAddress);
-          return ethers.utils.formatEther(balance); // Convert to ETH
-        } catch (error) {
-          console.error("Error fetching balance:", error);
-          throw new Error("Unable to fetch wallet balance.");
+      function completeTask(taskId, url = "") {
+        if (!completedTasks.includes(taskId)) {
+          if (url) window.open(url, "_blank");
+
+          completedTasks.push(taskId);
+          localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
+          initTasks();
         }
       }
 
-      async function processPayment(event) {
-        event.preventDefault();
+      function finalizeParticipation() {
+        const ticketNumber = Math.floor(Math.random() * 100000);
+        const details = {
+          username,
+          ticketNumber,
+          status: "Pending",
+        };
 
-        const payWith = document.getElementById("payWith").value;
-        const paymentAmount = 19.95; // Example USD value
-
-        try {
-          const balance = await getWalletBalance(payWith);
-          document.getElementById("balanceStatus").innerText = `Your Balance: ${balance} ${payWith}`;
-          if (parseFloat(balance) < paymentAmount) {
-            alert("Insufficient balance to complete the payment.");
-            return;
-          }
-
-          alert("Payment successful! Thank you for your subscription.");
-        } catch (error) {
-          alert(error.message);
-        }
+        localStorage.setItem("userDetails", JSON.stringify(details));
+        showUserTable(details);
       }
+
+      function showUserTable(details) {
+        const table = document.getElementById("user-table");
+        const tableBody = document.getElementById("table-body");
+        tableBody.innerHTML = `
+          <tr>
+            <td>${details.username}</td>
+            <td>${details.ticketNumber}</td>
+            <td>${details.status}</td>
+          </tr>`;
+        table.style.display = "block";
+      }
+
+      window.onload = initTasks;
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>
